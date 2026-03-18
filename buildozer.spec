@@ -9,7 +9,7 @@ source.include_exts = py,png,jpg,jpeg,json,ttf,otf,kv
 version         = 2.0
 
 # Kivy + pygame (no version pin — lets p4a pick a compatible build)
-requirements    = python3,kivy==2.3.0,pygame,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pillow
+requirements    = python3,kivy==2.3.0,pygame==2.1.3,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pillow
 
 orientation     = landscape
 fullscreen      = 1
