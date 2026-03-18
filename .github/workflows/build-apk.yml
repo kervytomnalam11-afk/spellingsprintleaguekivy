@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
@@ -10,33 +10,50 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.10"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
-            libffi-dev libssl-dev libsqlite3-dev ccache build-essential \
-            libltdl-dev openjdk-17-jdk python3-pip
+          sudo apt-get install -y \
+            git zip unzip wget \
+            openjdk-17-jdk \
+            python3-pip \
+            autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            cmake libffi-dev libssl-dev \
+            build-essential ccache \
+            libsdl2-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libsdl2-ttf-dev \
+            fonts-dejavu-core
 
       - name: Install Python build tools
         run: |
           pip install --upgrade pip
-          pip install buildozer==1.5.0 "cython<3.0" python-for-android==2023.9.16
+          pip install buildozer cython==0.29.36 virtualenv pillow
 
-      - name: Generate icon and presplash
+      - name: Generate icon.png and presplash.png
         run: |
-          pip install pillow
           python make_icon.py
+          ls -lh icon.png presplash.png
 
-      - name: Build APK
+      - name: Cache Android SDK / NDK / buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.android
+          key: android-${{ hashFiles('buildozer.spec') }}-v3
+          restore-keys: |
+            android-
+
+      - name: Build debug APK
         run: |
           export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
           export PATH=$JAVA_HOME/bin:$PATH
@@ -48,12 +65,21 @@ jobs:
           printf '859f317696f67ef3d7f30a50a5560e7834b43903\n' > $HOME/.android/licenses/google-gdk-license
           printf '9a2a5c1d0f887d6e0b472db7fc44e8de2bfd0c36\n' > $HOME/.android/licenses/mips-android-sysimage-license
           echo 'count=0' > $HOME/.android/repositories.cfg
-          yes | buildozer android debug
+          SDK=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $SDK/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/ct.zip
+          unzip -q /tmp/ct.zip -d /tmp/ct
+          mv /tmp/ct/cmdline-tools $SDK/cmdline-tools/latest
+          export PATH=$SDK/cmdline-tools/latest/bin:$PATH
+          yes | sdkmanager --sdk_root=$SDK --licenses 2>/dev/null || true
+          sdkmanager --sdk_root=$SDK "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+          mkdir -p $SDK/tools/bin
+          ln -sf $SDK/cmdline-tools/latest/bin/sdkmanager $SDK/tools/bin/sdkmanager
+          yes | buildozer -v android debug
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: spelling-sprint-league-debug
+          name: SpellingSprintLeague-debug
           path: bin/*.apk
-          if-no-files-found: error
           retention-days: 30
