@@ -24,7 +24,7 @@ android.api          = 33
 android.minapi       = 21
 android.ndk          = 25b
 android.archs        = arm64-v8a
-android.permissions  = INTERNET, ACCESS_NETWORK_STATE, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.permissions  = INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE, CHANGE_WIFI_STATE, CHANGE_NETWORK_STATE, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 android.allow_backup = True
 
 p4a.bootstrap = sdl2
