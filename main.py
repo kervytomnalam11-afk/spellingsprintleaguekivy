@@ -30,21 +30,29 @@ import sys, os, time, math, random, array
 from enum import Enum, auto
 
 # ── pygame: init subsystems needed for off-screen drawing ─────────────────────
-# SDL_VIDEODRIVER=dummy lets pygame.display.init() run without a real window.
-# Kivy owns the actual window — pygame only draws to off-screen surfaces.
+# On Android, SDL_VIDEODRIVER=dummy lets pygame run without its own window.
+# On desktop we leave SDL alone so Kivy can use it normally.
 import os as _os
-_os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
-_os.environ.setdefault('SDL_AUDIODRIVER', 'dummy')
+
+try:
+    import android
+    _IS_ANDROID = True
+except ImportError:
+    _IS_ANDROID = False
+
+if _IS_ANDROID:
+    _os.environ.setdefault('SDL_VIDEODRIVER', 'dummy')
+    _os.environ.setdefault('SDL_AUDIODRIVER', 'dummy')
 
 import pygame
-pygame.display.init()   # needed so pygame.Surface(SRCALPHA) works
+pygame.display.init()
 pygame.font.init()
 
-# Remove dummy audio driver so mixer can use real hardware
-try:
-    del _os.environ['SDL_AUDIODRIVER']
-except KeyError:
-    pass
+if _IS_ANDROID:
+    try:
+        del _os.environ['SDL_AUDIODRIVER']
+    except KeyError:
+        pass
 
 _MIXER_OK = False
 try:
@@ -1483,7 +1491,7 @@ class PygameWidget(Widget):
 
     # ── keyboard events ───────────────────────────────────────────────────────
 
-    def _on_key_down(self, window, keycode, text, modifiers):
+    def _on_key_down(self, window, keycode, scancode, text, modifiers):
         kc = keycode[0] if isinstance(keycode, (list, tuple)) else keycode
         if kc in self._KEYMAP:
             pg_key, uni = self._KEYMAP[kc]
