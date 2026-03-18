@@ -40,6 +40,14 @@ jobs:
         run: |
           export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
           export PATH=$JAVA_HOME/bin:$PATH
+          mkdir -p $HOME/.android/licenses
+          printf '8933bad161af4178b1185d1a37fbf41ea5269c55\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n' > $HOME/.android/licenses/android-sdk-license
+          printf 'd975f751698a77b662f1254ddbeed3901e976f5a\n33b6937101352bc1c4d3f036da786f2e61af3b3e\n' > $HOME/.android/licenses/android-sdk-preview-license
+          printf 'e9acab5b5fbb560a72cfaecce8946896ff6aab9d\n' > $HOME/.android/licenses/android-googletv-license
+          printf '601085b94cd77f0b54ff86406957099ebe79c4d\n' > $HOME/.android/licenses/android-sdk-arm-dbt-license
+          printf '859f317696f67ef3d7f30a50a5560e7834b43903\n' > $HOME/.android/licenses/google-gdk-license
+          printf '9a2a5c1d0f887d6e0b472db7fc44e8de2bfd0c36\n' > $HOME/.android/licenses/mips-android-sysimage-license
+          echo 'count=0' > $HOME/.android/repositories.cfg
           yes | buildozer android debug
 
       - name: Upload APK
